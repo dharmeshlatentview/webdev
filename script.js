@@ -1,3 +1,23 @@
+// JavaScript code for capturing user ID cookie and tracking activity
+function generateUserId() {
+  // Generate a random user ID (you can use a more sophisticated method for this in a real application)
+  return 'user_' + Math.random().toString(36).substr(2, 9);
+}
+
+function setUserIdCookie() {
+  const userId = generateUserId();
+  document.cookie = `user_id=${userId}; max-age=2592000; path=/;`;
+  // Set the cookie with the name 'user_id', valid for 30 days (30 days * 24 hours * 60 minutes * 60 seconds = 2592000 seconds)
+  // The cookie is accessible from the entire website (path=/)
+  localStorage.setItem("userId", userId);
+  //const userId = localStorage.getItem("userId");
+  console.log("User ID:", userId);
+}
+
+// Retrieve the user ID from localStorage
+//const userId = localStorage.getItem("userId");
+//console.log("User ID:", userId);
+
 // JavaScript code for IP address tracking
 async function getIpAddress() {
   try {
@@ -12,11 +32,8 @@ async function getIpAddress() {
 
 async function trackIpAddress() {
   const ipAddress = await getIpAddress();
-  console.log('User IP address:', ipAddress);
+  console.log('User IP address from IP info website:', ipAddress);
 }
-
-// Call the trackIpAddress() function when the page loads
-trackIpAddress();
 
 // Function to get user browser information
 function getBrowserInfo() {
@@ -52,6 +69,10 @@ function getSystemInfo() {
   return systemInfo;
 }
 
+// Set the user ID cookie when the page loads
+setUserIdCookie();
+// Call the trackIpAddress() function when the page loads
+trackIpAddress();
 
 // Call the functions and store the information in localStorage when the page loads
 window.onload = function() {
@@ -72,24 +93,11 @@ window.onload = function() {
 };
 
 
-// JavaScript code for capturing user ID cookie and tracking activity
-function generateUserId() {
-  // Generate a random user ID (you can use a more sophisticated method for this in a real application)
-  return 'user_' + Math.random().toString(36).substr(2, 9);
-}
-
-function setUserIdCookie() {
-  const userId = generateUserId();
-  document.cookie = `user_id=${userId}; max-age=2592000; path=/;`;
-  // Set the cookie with the name 'user_id', valid for 30 days (30 days * 24 hours * 60 minutes * 60 seconds = 2592000 seconds)
-  // The cookie is accessible from the entire website (path=/)
-}
-
-function trackActivity(activity) {
-  // Here, you can perform various actions to track the user's activity.
-  // For this example, we will log the activity to the console.
-  console.log(`User activity: ${activity}`);
-}
+// function trackActivity(activity) {
+//   // Here, you can perform various actions to track the user's activity.
+//   // For this example, we will log the activity to the console.
+//   console.log(`User activity: ${activity}`);
+// }
 
 document.getElementById("nextPageBtn").addEventListener("click", () => {
   // Track 'Next Page' button click activity
@@ -105,31 +113,30 @@ document.getElementById("aboutBtn").addEventListener("click", () => {
   window.location.href = "about.html";
 });
 
-// Set the user ID cookie when the page loads
-setUserIdCookie();
 
-// Retrieve the click count from local storage if available
-let clickCount = parseInt(localStorage.getItem("clickCount")) || 0;
 
-// Function to handle button clicks and change color after 3 clicks
-function handleButtonClick() {
-  clickCount++;
-  console.log(`Button clicked ${clickCount} time(s).`);
+// // Retrieve the click count from local storage if available
+// let clickCount = parseInt(localStorage.getItem("clickCount")) || 0;
 
-  // Check if the click count is equal to 3
-  if (clickCount === 3) {
-    // Change the button color to yellow
-    const button = document.getElementById("nextPageBtn");
-    button.style.backgroundColor = "yellow";
-    console.log("Button color changed to yellow.");
-  }
+// // Function to handle button clicks and change color after 3 clicks
+// function handleButtonClick() {
+//   clickCount++;
+//   console.log(`Button clicked ${clickCount} time(s).`);
 
-  // Store the updated click count in local storage
-  localStorage.setItem("clickCount", clickCount);
-}
+//   // Check if the click count is equal to 3
+//   if (clickCount === 3) {
+//     // Change the button color to yellow
+//     const button = document.getElementById("nextPageBtn");
+//     button.style.backgroundColor = "yellow";
+//     console.log("Button color changed to yellow.");
+//   }
 
-// Add the click event listener to the button
-document.getElementById("nextPageBtn").addEventListener("click", handleButtonClick);
+//   // Store the updated click count in local storage
+//   localStorage.setItem("clickCount", clickCount);
+// }
+
+// // Add the click event listener to the button
+// document.getElementById("nextPageBtn").addEventListener("click", handleButtonClick);
 
 // Add a global click event listener to count clicks across the whole webpage
 document.addEventListener("click", () => {
@@ -148,19 +155,69 @@ document.addEventListener("click", () => {
 
 
 
-function setUserIdCookie() {
-  const userId = generateUserId();
-  document.cookie = `user_id=${userId}; max-age=2592000; path=/;`;
-  // Set the cookie with the name 'user_id', valid for 30 days (30 days * 24 hours * 60 minutes * 60 seconds = 2592000 seconds)
-  // The cookie is accessible from the entire website (path=/)
+function trackActivity(activity) {
+  // Get the current timestamp
+  const timestamp = new Date().toISOString();
 
-  // Store the user ID in localStorage
-  localStorage.setItem("userId", userId);
+  // Get the existing activity data from local storage or initialize an empty array if it doesn't exist
+  const existingActivityData = JSON.parse(localStorage.getItem('activityData')) || [];
+
+  // Push the new activity data to the array
+  existingActivityData.push({ timestamp, activity });
+
+  // Store the updated activity data in local storage
+  localStorage.setItem('activityData', JSON.stringify(existingActivityData));
+
+  // Here, you can perform various actions to track the user's activity.
+  // For this example, we will log the activity to the console.
+  console.log(`User activity: ${activity}`);
 }
 
-// Retrieve the user ID from localStorage
-const userId = localStorage.getItem("userId");
-console.log("User ID:", userId);
+function prepareDataToSend() {
+  // Retrieve the click count from local storage if available
+  let clickCount = parseInt(localStorage.getItem('clickCount')) || 0;
+
+  // Retrieve the user ID from local storage
+  const userId = localStorage.getItem('userId');
+
+  // Retrieve the activity data from local storage
+  const activityData = JSON.parse(localStorage.getItem('activityData')) || [];
+
+  // Prepare the data object to send to the server
+  const dataToSend = {
+    userId,
+    clickCount,
+    activityData,
+  };
+
+  return dataToSend;
+}
+
+prepareDataToSend()
+// Function to send data to the server
+// async function sendDataToServer(data) {
+//   try {
+//     const response = await fetch('https://your-server-endpoint', {
+//       method: 'POST',
+//       headers: {
+//         'Content-Type': 'application/json',
+//       },
+//       body: JSON.stringify(data),
+//     });
+
+//     const responseData = await response.json();
+//     console.log('Server response:', responseData);
+//   } catch (error) {
+//     console.error('Error sending data to the server:', error);
+//   }
+// }
+
+
+// Example usage: Whenever you want to send the data to the server (e.g., before page navigation)
+// const dataToSend = prepareDataToSend();
+// sendDataToServer(dataToSend);
+
+
 
 
 
